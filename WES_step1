@@ -9,7 +9,7 @@ module load VEP/115.2-GCC-13.3.0
 test_out$ for sample_dir in /input_dir/*; do sample_name=$(basename "$sample_dir"); input_vcf="$sample_dir/variants/somatic.snvs.vcf.gz"; output_vcf="/output_dir/${sample_name}.pass.snv.vcf.gz"; [[ -f "$input_vcf" ]] && bcftools view -f PASS -Oz -o "$output_vcf" "$input_vcf" && bcftools index -t "$output_vcf"; done
 
 #run VEP for one sample vcf
-vep -i BL100.pass.snv.vcf.gz --format vcf -o test.vep.txt --vcf --cache --offline --dir_cache /mnt/bctl/ggul0007/test_out/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein
+vep -i BL100.pass.snv.vcf.gz --format vcf -o test.vep.txt --vcf --cache --offline --dir_cache /my_dir/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein
 
 #or for multiple samples:
-for vcf in pass_snv/*.vcf.gz; do base=$(basename "$vcf" .vcf.gz); echo "Processing $base ..."; vep -i "$vcf" -o vep_pass_snv/"$base".vep.txt --vcf --cache --offline --dir_cache /mnt/bctl/ggul0007/test_out/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein; done
+for vcf in pass_snv/*.vcf.gz; do base=$(basename "$vcf" .vcf.gz); echo "Processing $base ..."; vep -i "$vcf" -o vep_pass_snv/"$base".vep.txt --vcf --cache --offline --dir_cache /my_dir/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein; done
