@@ -1,15 +1,37 @@
 ##bash
 # working on HPC terminal
 #loading the module
-module load VEP/115.2-GCC-13.3.0
+#module load bcftools
+
+##############TMB calculation#####################
+###STEP1: nominator calculation
 
 #choosing "PASS" variants only using bcftools
-#load the bcftools module
-#then extract:
 test_out$ for sample_dir in /input_dir/*; do sample_name=$(basename "$sample_dir"); input_vcf="$sample_dir/variants/somatic.snvs.vcf.gz"; output_vcf="/output_dir/${sample_name}.pass.snv.vcf.gz"; [[ -f "$input_vcf" ]] && bcftools view -f PASS -Oz -o "$output_vcf" "$input_vcf" && bcftools index -t "$output_vcf"; done
 
+#other filters: VAF >=5%; n.DP >=15, t.DP >=30; Alt_read >=3:
+for vcf in /output_dir/pass_snv/*.pass.snv.vcf.gz; do sample=$(basename "$vcf" .pass.snv.vcf.gz); out="/wes_filtered_before_tmb/${sample}.filtered.vcf.gz"; bcftools view -i 'FMT/DP[0]>=15 && FMT/DP[1]>=30 && ((ALT="A" && FMT/AU[1:0]>=3 && FMT/AU[1:0]/FMT/DP[1]>=0.05) || (ALT="C" && FMT/CU[1:0]>=3 && FMT/CU[1:0]/FMT/DP[1]>=0.05) || (ALT="G" && FMT/GU[1:0]>=3 && FMT/GU[1:0]/FMT/DP[1]>=0.05) || (ALT="T" && FMT/TU[1:0]>=3 && FMT/TU[1:0]/FMT/DP[1]>=0.05))' -Oz -o "$out" "$vcf" && bcftools index -t "$out"; done
+
 #run VEP for one sample vcf
+module load VEP/115.2-GCC-13.3.0
 vep -i BL100.pass.snv.vcf.gz --format vcf -o test.vep.txt --vcf --cache --offline --dir_cache /my_dir/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein
 
 #or for multiple samples:
-for vcf in pass_snv/*.vcf.gz; do base=$(basename "$vcf" .vcf.gz); echo "Processing $base ..."; vep -i "$vcf" -o vep_pass_snv/"$base".vep.txt --vcf --cache --offline --dir_cache /my_dir/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein; done
+for vcf in wes_filtered_before_tmb/*.vcf.gz; do base=$(basename "$vcf" .vcf.gz); echo "Processing $base ..."; vep -i "$vcf" -o vep_tmb/"$base".vep.vcf --vcf --cache --offline --dir_cache /vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein; done
+
+#vep output statistics for one sample:
+bcftools +split-vep BL100.filtered.vep.vcf -f '%Consequence\n' | sort | uniq -c
+>42 3_prime_UTR_variant
+>452 intron_variant
+# for all samples with a loop:
+echo -e "file\tcount\tconsequence" > vep_summary.tsv; for f in *.filtered.vep.vcf; do bcftools +split-vep "$f" -f '%Consequence\n' | sort | uniq -c | awk -v file="$f" '{print file "\t" $1 "\t" $2}' >> vep_summary.tsv; done
+
+#to get CSQ headings:
+grep "##INFO=<ID=CSQ" BL103.filtered.vep.vcf
+>##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|DISTANCE|STRAND|FLAGS|VARIANT_CLASS|SYMBOL_SOURCE|HGNC_ID|CANONICAL|MANE|MANE_SELECT|MANE_PLUS_CLINICAL|TSL|APPRIS|CCDS|ENSP|SWISSPROT|TREMBL|UNIPARC|UNIPROT_ISOFORM|GENE_PHENO|SIFT|PolyPhen|DOMAINS|miRNA|AF|AFR_AF|AMR_AF|EAS_AF|EUR_AF|SAS_AF|gnomADe_AF|gnomADe_AFR_AF|gnomADe_AMR_AF|gnomADe_ASJ_AF|gnomADe_EAS_AF|gnomADe_FIN_AF|gnomADe_MID_AF|gnomADe_NFE_AF|gnomADe_REMAINING_AF|gnomADe_SAS_AF|gnomADg_AF|gnomADg_AFR_AF|gnomADg_AMI_AF|gnomADg_AMR_AF|gnomADg_ASJ_AF|gnomADg_EAS_AF|gnomADg_FIN_AF|gnomADg_MID_AF|gnomADg_NFE_AF|gnomADg_REMAINING_AF|gnomADg_SAS_AF|MAX_AF|MAX_AF_POPS|CLIN_SIG|SOMATIC|PHENO|PUBMED|MOTIF_NAME|MOTIF_POS|HIGH_INF_POS|MOTIF_SCORE_CHANGE|TRANSCRIPTION_FACTORS">
+
+#to quickly see gnomade_AF, gnomadg_AF and max_AF for each variant:
+bcftools query -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%QUAL\t%FILTER\t%INFO/CSQ\n' BL103.filtered.vep.vcf | awk -F'|' '{print $1, $4, $48, $58, $69}'
+
+#apply AF filter:
+bcftools +split-vep BL103.filtered.vep.vcf -f '%CHROM\t%POS\t%SYMBOL\t%MAX_AF\n' -i 'MAX_AF < 0.001 || MAX_AF = "." '
