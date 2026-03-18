@@ -34,4 +34,8 @@ grep "##INFO=<ID=CSQ" BL103.filtered.vep.vcf
 bcftools query -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%QUAL\t%FILTER\t%INFO/CSQ\n' BL103.filtered.vep.vcf | awk -F'|' '{print $1, $4, $48, $58, $69}'
 
 #apply AF filter:
-bcftools +split-vep BL103.filtered.vep.vcf -f '%CHROM\t%POS\t%SYMBOL\t%MAX_AF\n' -i 'MAX_AF < 0.001 || MAX_AF = "." '
+#bcftools +split-vep BL103.filtered.vep.vcf -f '%CHROM\t%POS\t%SYMBOL\t%MAX_AF\n' -i 'MAX_AF < 0.001 || MAX_AF = "." '
+for f in *.vep.vcf; do bcftools +split-vep "$f" -f '%CHROM\t%POS\t%REF\t%ALT\t%Allele\t%Consequence\t%SYMBOL\t%cDNA_position\t%CDS_position\t%Protein_position\t%Amino_acids\t%Codons\t%CANONICAL\t%MANE\t%SIFT\t%PolyPhen\t%CLIN_SIG\t%gnomADe_AF\t%gnomADg_AF\t%MAX_AF\n' | awk 'BEGIN{OFS="\t"; print "CHROM","POS","REF","ALT","Allele","Consequence","SYMBOL","cDNA_position","CDS_position","Protein_position","Amino_acids","Codons","CANONICAL","MANE","SIFT","PolyPhen","CLIN_SIG","gnomADe_AF","gnomADg_AF","MAX_AF"} ($20=="." || $20<0.001) && ($6 ~ /missense_variant|stop_gained|stop_lost|start_lost|splice_donor_variant|splice_acceptor_variant|synonymous_variant/)' > "filter_vep/${f%.vep.vcf}_rare_damaging.tsv"; done
+
+#calculation of nonsynonymous variants:
+echo -e "file\tConsequence\tcount" > vep_consequence_counts.tsv; for f in *_maxAF.tsv; do tail -n +2 "$f" | cut -f6 | sort | uniq -c | awk -v file="$(basename "$f")" '{print file"\t"$2"\t"$1}'; done >> /mnt/bctl/ggul0007/test_out/vep_sum/vep_consequence_counts.tsv
