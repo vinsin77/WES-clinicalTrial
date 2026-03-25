@@ -7,22 +7,22 @@
 ###STEP1: nominator calculation
 
 #choosing "PASS" variants only using bcftools
-test_out$ for sample_dir in /input_dir/*; do sample_name=$(basename "$sample_dir"); input_vcf="$sample_dir/variants/somatic.snvs.vcf.gz"; output_vcf="/output_dir/${sample_name}.pass.snv.vcf.gz"; [[ -f "$input_vcf" ]] && bcftools view -f PASS -Oz -o "$output_vcf" "$input_vcf" && bcftools index -t "$output_vcf"; done
+test_out$ for sample_dir in /input_dir/*; do sample_name=$(basename "$sample_dir"); input_vcf="$sample_dir/variants/somatic.snvs.vcf.gz"; output_vcf="pass_snv/${sample_name}.pass.snv.vcf.gz"; [[ -f "$input_vcf" ]] && bcftools view -f PASS -Oz -o "$output_vcf" "$input_vcf" && bcftools index -t "$output_vcf"; done
 
-#other filters: VAF >=5%; n.DP >=15, t.DP >=30; Alt_read >=3:
-for vcf in /output_dir/pass_snv/*.pass.snv.vcf.gz; do sample=$(basename "$vcf" .pass.snv.vcf.gz); out="/wes_filtered_before_tmb/${sample}.filtered.vcf.gz"; bcftools view -i 'FMT/DP[0]>=15 && FMT/DP[1]>=30 && ((ALT="A" && FMT/AU[1:0]>=3 && FMT/AU[1:0]/FMT/DP[1]>=0.05) || (ALT="C" && FMT/CU[1:0]>=3 && FMT/CU[1:0]/FMT/DP[1]>=0.05) || (ALT="G" && FMT/GU[1:0]>=3 && FMT/GU[1:0]/FMT/DP[1]>=0.05) || (ALT="T" && FMT/TU[1:0]>=3 && FMT/TU[1:0]/FMT/DP[1]>=0.05))' -Oz -o "$out" "$vcf" && bcftools index -t "$out"; done
+#other filters: tumour VAF >=10%; n.DP >=30, t.DP >=50; tumour Alt_read >=5, normal VAF<=2%:
+for vcf in pass_snv/*.pass.snv.vcf.gz; do sample=$(basename "$vcf" .pass.snv.vcf.gz); out="wes_filtered_before_tmb/${sample}.filtered.vcf.gz"; bcftools view -i 'FMT/DP[0]>=30 && FMT/DP[1]>=50 && ((ALT="A" && FMT/AU[1:0]>=5 && FMT/AU[1:0]/FMT/DP[1]>=0.1 && FMT/AU[0:0]/FMT/DP[0]<=0.02) || (ALT="C" && FMT/CU[1:0]>=5 && FMT/CU[1:0]/FMT/DP[1]>=0.1 && FMT/CU[0:0]/FMT/DP[0]<=0.02) || (ALT="G" && FMT/GU[1:0]>=5 && FMT/GU[1:0]/FMT/DP[1]>=0.1 && FMT/GU[0:0]/FMT/DP[0]<=0.02) || (ALT="T" && FMT/TU[1:0]>=5 && FMT/TU[1:0]/FMT/DP[1]>=0.1 && FMT/TU[0:0]/FMT/DP[0]<=0.02))' -Oz -o "$out" "$vcf" && bcftools index -t "$out"; done
 
 #run VEP for one sample vcf
 module load VEP/115.2-GCC-13.3.0
 vep -i BL100.pass.snv.vcf.gz --format vcf -o test.vep.txt --vcf --cache --offline --dir_cache /my_dir/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein
 
 #or for multiple samples:
-for vcf in wes_filtered_before_tmb/*.vcf.gz; do base=$(basename "$vcf" .vcf.gz); echo "Processing $base ..."; vep -i "$vcf" -o vep_tmb/"$base".vep.vcf --vcf --cache --offline --dir_cache /vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein; done
+~test_out$for vcf in wes_filtered_before_tmb/*.vcf.gz; do base=$(basename "$vcf" .vcf.gz); echo "Processing $base ..."; vep -i "$vcf" -o vep_tmb/"$base".vep.vcf --vcf --cache --offline --dir_cache vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein; done
 
 #vep output statistics for one sample:
 bcftools +split-vep BL100.filtered.vep.vcf -f '%Consequence\n' | sort | uniq -c
->42 3_prime_UTR_variant
->452 intron_variant
+   >42 3_prime_UTR_variant
+   >452 intron_variant
 # for all samples with a loop:
 echo -e "file\tcount\tconsequence" > vep_summary.tsv; for f in *.filtered.vep.vcf; do bcftools +split-vep "$f" -f '%Consequence\n' | sort | uniq -c | awk -v file="$f" '{print file "\t" $1 "\t" $2}' >> vep_summary.tsv; done
 
@@ -35,7 +35,26 @@ bcftools query -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%QUAL\t%FILTER\t%INFO/CSQ\n' B
 
 #apply AF filter:
 #bcftools +split-vep BL103.filtered.vep.vcf -f '%CHROM\t%POS\t%SYMBOL\t%MAX_AF\n' -i 'MAX_AF < 0.001 || MAX_AF = "." '
-for f in *.vep.vcf; do bcftools +split-vep "$f" -f '%CHROM\t%POS\t%REF\t%ALT\t%Allele\t%Consequence\t%SYMBOL\t%cDNA_position\t%CDS_position\t%Protein_position\t%Amino_acids\t%Codons\t%CANONICAL\t%MANE\t%SIFT\t%PolyPhen\t%CLIN_SIG\t%gnomADe_AF\t%gnomADg_AF\t%MAX_AF\n' | awk 'BEGIN{OFS="\t"; print "CHROM","POS","REF","ALT","Allele","Consequence","SYMBOL","cDNA_position","CDS_position","Protein_position","Amino_acids","Codons","CANONICAL","MANE","SIFT","PolyPhen","CLIN_SIG","gnomADe_AF","gnomADg_AF","MAX_AF"} ($20=="." || $20<0.001) && ($6 ~ /missense_variant|stop_gained|stop_lost|start_lost|splice_donor_variant|splice_acceptor_variant|synonymous_variant/)' > "filter_vep/${f%.vep.vcf}_rare_damaging.tsv"; done
+for f in *.vep.vcf; do bcftools +split-vep "$f" -f '%CHROM\t%POS\t%REF\t%ALT\t%Allele\t%Consequence\t%SYMBOL\t%cDNA_position\t%CDS_position\t%Protein_position\t%Amino_acids\t%Codons\t%CANONICAL\t%MANE\t%SIFT\t%PolyPhen\t%CLIN_SIG\t%gnomADe_AF\t%gnomADg_AF\t%MAX_AF\n' | awk 'BEGIN{OFS="\t"; print "CHROM","POS","REF","ALT","Allele","Consequence","SYMBOL","cDNA_position","CDS_position","Protein_position","Amino_acids","Codons","CANONICAL","MANE","SIFT","PolyPhen","CLIN_SIG","gnomADe_AF","gnomADg_AF","MAX_AF"} ($20=="." || $20<0.001) && ($6 ~ /missense_variant|stop_gained|stop_lost|start_lost|splice_donor_variant|splice_acceptor_variant|synonymous_variant/)' > "filter_vep/${f%.vep.vcf}_maxAF.tsv"; done
 
 #calculation of nonsynonymous variants:
 echo -e "file\tConsequence\tcount" > vep_consequence_counts.tsv; for f in *_maxAF.tsv; do tail -n +2 "$f" | cut -f6 | sort | uniq -c | awk -v file="$(basename "$f")" '{print file"\t"$2"\t"$1}'; done >> /mnt/bctl/ggul0007/test_out/vep_sum/vep_consequence_counts.tsv
+
+
+###########
+#######STEP2: denominator calculation
+samtools depth -@ 6 -b xgen-exome-hyb-panel-v2-targets-hg38.bed /wes/BL141/final.bam /wes/WB141/final.bam | awk '$3 >= 50 && $4 >= 30 {count++} END {print count/1000000}'
+
+#Ti/Tv calc:
+~/wes_filtered_before_tmb$ bcftools stats BL5D.filtered2.vcf.gz | grep "TSTV"
+   ># TSTV, transitions/transversions:
+    # TSTV  [2]id   [3]ts   [4]tv   [5]ts/tv        [6]ts (1st ALT) [7]tv (1st ALT) [8]ts/tv (1st ALT)
+    TSTV    0       480     118     4.07    480     118     4.07
+
+~/wes_filtered_before_tmb$ bcftools query -f '%REF>%ALT\n' BL5D.filtered2.vcf.gz | sed 's/G>T/C>A/; s/G>C/C>G/; s/G>A/C>T/; s/A>T/T>A/; s/A>G/T>C/; s/A>C/T>G/' | sort | uniq -c
+   >38 C>A
+    48 C>G
+    444 C>T
+    13 T>A
+    36 T>C
+    19 T>G
