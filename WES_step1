@@ -9,8 +9,8 @@
 #choosing "PASS" variants only using bcftools
 test_out$ for sample_dir in /input_dir/*; do sample_name=$(basename "$sample_dir"); input_vcf="$sample_dir/variants/somatic.snvs.vcf.gz"; output_vcf="pass_snv/${sample_name}.pass.snv.vcf.gz"; [[ -f "$input_vcf" ]] && bcftools view -f PASS -Oz -o "$output_vcf" "$input_vcf" && bcftools index -t "$output_vcf"; done
 
-#other filters: tumour VAF >=10%; n.DP >=30, t.DP >=50; tumour Alt_read >=5, normal VAF<=2%:
-for vcf in pass_snv/*.pass.snv.vcf.gz; do sample=$(basename "$vcf" .pass.snv.vcf.gz); out="wes_filtered_before_tmb/${sample}.filtered.vcf.gz"; bcftools view -i 'FMT/DP[0]>=30 && FMT/DP[1]>=50 && ((ALT="A" && FMT/AU[1:0]>=5 && FMT/AU[1:0]/FMT/DP[1]>=0.1 && FMT/AU[0:0]/FMT/DP[0]<=0.02) || (ALT="C" && FMT/CU[1:0]>=5 && FMT/CU[1:0]/FMT/DP[1]>=0.1 && FMT/CU[0:0]/FMT/DP[0]<=0.02) || (ALT="G" && FMT/GU[1:0]>=5 && FMT/GU[1:0]/FMT/DP[1]>=0.1 && FMT/GU[0:0]/FMT/DP[0]<=0.02) || (ALT="T" && FMT/TU[1:0]>=5 && FMT/TU[1:0]/FMT/DP[1]>=0.1 && FMT/TU[0:0]/FMT/DP[0]<=0.02))' -Oz -o "$out" "$vcf" && bcftools index -t "$out"; done
+#other filters: tumour VAF >=10%; n.DP >=30, t.DP >=50; tumour Alt_read >=8, normal VAF<=2%:
+for vcf in pass_snv/*.pass.snv.vcf.gz; do sample=$(basename "$vcf" .pass.snv.vcf.gz); out="wes_filtered_before_tmb/${sample}.filtered.vcf.gz"; bcftools view -i 'FMT/DP[0]>=30 && FMT/DP[1]>=50 && ((ALT="A" && FMT/AU[1:0]>=8 && FMT/AU[1:0]/FMT/DP[1]>=0.1 && FMT/AU[0:0]/FMT/DP[0]<=0.02) || (ALT="C" && FMT/CU[1:0]>=8 && FMT/CU[1:0]/FMT/DP[1]>=0.1 && FMT/CU[0:0]/FMT/DP[0]<=0.02) || (ALT="G" && FMT/GU[1:0]>=8 && FMT/GU[1:0]/FMT/DP[1]>=0.1 && FMT/GU[0:0]/FMT/DP[0]<=0.02) || (ALT="T" && FMT/TU[1:0]>=8 && FMT/TU[1:0]/FMT/DP[1]>=0.1 && FMT/TU[0:0]/FMT/DP[0]<=0.02))' -Oz -o "$out" "$vcf" && bcftools index -t "$out"; done
 
 #run VEP for one sample vcf
 module load VEP/115.2-GCC-13.3.0
@@ -58,3 +58,12 @@ samtools depth -@ 6 -b xgen-exome-hyb-panel-v2-targets-hg38.bed /wes/BL141/final
     13 T>A
     36 T>C
     19 T>G
+
+#median DP and mean DP for tumour:
+for f in *.vcf.gz; do printf "$f\t"; bcftools query -f '[%DP\t]\n' "$f" | awk '{print $2}' | sort -n | awk '{s+=$1; a[i++]=$1} END {if(i>0) printf "Mean: %.2f\tMedian: %d\n", s/i, a[int(i/2)]; else print "No_Data"}'; done
+
+##median DP and mean DP for normal:
+for f in *.vcf.gz; do printf "$f\t"; bcftools query -f '[%DP\t]\n' "$f" | awk '{print $1}' | sort -n | awk '{s+=$1; a[i++]=$1} END {if(i>0) printf "Normal Mean: %.2f\tNormal Median: %d\n", s/i, a[int(i/2)]; else print "No_Data"}'; done
+
+#variant count:
+for f in *.vcf.gz; do echo -n "$f: "; bcftools stats "$f" | grep "number of SNPs:" | cut -f4; done
