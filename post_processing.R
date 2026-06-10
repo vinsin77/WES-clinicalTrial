@@ -64,5 +64,5 @@ rownames(cn_matrix_df) <- cn_rows$Descriptor
 write.csv(cn_matrix_df, "cn_absolute_values.csv")
 
 
-cat("  cn_absolute_values.csv    — absolute CN values per peak per sample\n")
+
 
