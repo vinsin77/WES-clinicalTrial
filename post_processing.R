@@ -46,9 +46,11 @@ classify_cn <- function(x) {
 status_matrix <- apply(cn_matrix, c(1,2), classify_cn)
 rownames(status_matrix) <- cn_rows$Descriptor
 
-# Quick summary — how many peaks per category
+# Quick summary:how many peaks per category
 
 print(table(status_matrix))
+#Amplification          Gain          Loss       Neutral 
+          #144           973           978          2952
 
 
 #  Save outputs
