@@ -59,8 +59,20 @@ print(table(status_matrix))
 write.csv(status_matrix, "cn_status_classified.csv")
 
 # CN matrix (absolute values, ploidy-normalized)
+unique_names <- paste0(
+  seq_len(nrow(cn_rows)), "_",
+  cn_rows$`Unique Name`, "_",
+  trimws(cn_rows$Descriptor)
+)
+
+# Verify they are now unique
+stopifnot(length(unique(unique_names)) == length(unique_names))
+
+# Apply to both matrices
 cn_matrix_df <- as.data.frame(cn_matrix)
-rownames(cn_matrix_df) <- cn_rows$Descriptor
+rownames(cn_matrix_df) <- unique_names
+rownames(status_matrix) <- unique_names
+
 write.csv(cn_matrix_df, "cn_absolute_values.csv")
 
 
