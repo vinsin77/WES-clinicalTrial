@@ -1,4 +1,7 @@
 ### -----INSTALL
+#current directory in /main/my_dir/test_out/wes_aura/pvacseq
+
+
 module load Anaconda3/2020.11  #load Anaconda
 source $(conda info --base)/etc/profile.d/conda.sh
 
@@ -11,10 +14,7 @@ pvacseq run --help
 
 ##Strelka2 reports AD/DP/allele counts but doesn't include a GT field in FORMAT, and pvacseq requires GT to determine zygosity and parse variant information correctly
 
-vcf-genotype-annotator input.vcf TUMOR_SAMPLE_NAME 0/1 -o output_with_gt.vcf
-# to get <TUMOR_SAMPLE_NAME>  
-module load BCFtools/1.18-GCC-12.3.0
-bcftools query -l your_file.vcf
+
 
 ### -----VEP PLUGINS
 # check if you see Wildtype.pm and Frameshift.pm listed as vep plugins:
@@ -23,6 +23,43 @@ ls /main/vep/.vep/Plugins/
 mkdir -p /main/vep/.vep/Plugins
 pvacseq install_vep_plugin /main/vep/.vep/Plugins
 ls /main/vep/.vep/Plugins/ #now You should see Wildtype.pm and Frameshift.pm listed
+
+#run VEP for one sample vcf
+#I filtered the vcfs before running VEP:
+##bcftools_viewCommand=view -f PASS -Oz -o /main/my_dir/test_out/pass_snv/BL100.pass.snv.vcf.gz /main/project/Muts38/BL100/variants/somatic.snvs.vcf.gz
+##bcftools_viewCommand=view -i 'FMT/DP[0]>=30 && FMT/DP[1]>=50 && ((FMT/AU[1:0]/FMT/DP[1]>=0.1 && FMT/AU[0:0]/FMT/DP[0]<=0.02) || (FMT/CU[1:0]/FMT/DP[1]>=0.1 && FMT/CU[0:0]/FMT/DP[0]<=0.02) || (FMT/GU[1:0]/FMT/DP[1]>=0.1 && FMT/GU[0:0]/FMT/DP[0]<=0.02) || (FMT/T
+U[1:0]/FMT/DP[1]>=0.1 && FMT/TU[0:0]/FMT/DP[0]<=0.02))' -Oz -o wes_filtered_before_tmb_5read/BL100.filtered.vcf.gz pass_snv/BL100.pass.snv.vcf.gz
+
+module load VEP/115.2-GCC-13.3.0
+vep -i BL100.filtered.vcf.gz --format vcf -o test.vep.vcf --vcf --plugin Frameshift --plugin Wildtype --dir_plugins /main/my_dir/test_out/vep/.vep/Plugins --cache --offline --dir_cache /main/my_dir/test_out/vep/.vep --species homo_sapiens --assembly GRCh38 --fork 8 --pick --everything --symbol --canonical --mane --protein
+
+#vcf-genotype-annotator input.vcf TUMOR_SAMPLE_NAME 0/1 -o output_with_gt.vcf
+# to get <TUMOR_SAMPLE_NAME>  
+module load BCFtools/1.18-GCC-12.3.0
+bcftools query -l test.vep.vcf
+#NORMAL
+#TUMOUR
+
+
+##--activate anaconda
+module load Anaconda3/2020.11
+source $(conda info --base)/etc/profile.d/conda.sh
+conda activate pvactools
+
+##--first add the GT field (since Strelka2 doesn't include it)
+vcf-genotype-annotator test.vep.vcf TUMOR 0/1 -o test.vep.gt.vcf
+
+##-download mhcflurry
+mhcflurry-downloads fetch
+mhcflurry-downloads info
+
+##--run pvacseq
+mkdir pvacseq_output
+pvacseq run test.vep.gt.vcf TUMOR HLA-A*02:01,HLA-A*03:01,HLA-B*07:02 MHCflurry MHCflurryEL NetMHCpan NetMHCpanEL ./pvacseq_output -e1 8,9,10,11 --pass-only -t 4
+#Done: Pipeline finished successfully. File ./pvacseq/pvacseq_output/MHC_Class_I/TUMOR.MHC_I.filtered.tsv contains list of filtered putative neoantigens.
+#No MHC class II prediction algorithms chosen. Skipping MHC class II predictions.
+
+
 
 
 
