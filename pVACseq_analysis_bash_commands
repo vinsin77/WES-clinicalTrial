@@ -1,0 +1,28 @@
+### -----INSTALL
+module load Anaconda3/2020.11  #load Anaconda
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda create -n pvactools python=3.10 -y
+conda activate pvactools
+
+pip install pvactools #install pVACtools and its dependencies 
+
+pvacseq run --help
+
+##Strelka2 reports AD/DP/allele counts but doesn't include a GT field in FORMAT, and pvacseq requires GT to determine zygosity and parse variant information correctly
+
+vcf-genotype-annotator input.vcf TUMOR_SAMPLE_NAME 0/1 -o output_with_gt.vcf
+# to get <TUMOR_SAMPLE_NAME>  
+module load BCFtools/1.18-GCC-12.3.0
+bcftools query -l your_file.vcf
+
+### -----VEP PLUGINS
+# check if you see Wildtype.pm and Frameshift.pm listed as vep plugins:
+ls /main/vep/.vep/Plugins/
+#if they are not there
+mkdir -p /main/vep/.vep/Plugins
+pvacseq install_vep_plugin /main/vep/.vep/Plugins
+ls /main/vep/.vep/Plugins/ #now You should see Wildtype.pm and Frameshift.pm listed
+
+
+
