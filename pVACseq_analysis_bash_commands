@@ -49,6 +49,27 @@ conda activate pvactools
 ##--first add the GT field (since Strelka2 doesn't include it)
 vcf-genotype-annotator test.vep.vcf TUMOR 0/1 -o test.vep.gt.vcf
 
+##this step was done in pvacseq_converting_genes.R .So we have the expression file (tpm values and Ensembl gene IDs) 
+#now we should install the vcf-expression-annotator:
+pip install vatools
+#pip install "vcfpy==0.13.8" "pandas<2.1.0" "polars==0.16.18" "gtfparse==2.0.1"
+python -c "import vatools; print('vatools ok')"
+
+##adding expression data to vep.vcf
+vcf-expression-annotator test.vep.gt.vcf BL100_tpm.tsv custom gene --id-column gene_id --expression-column TPM -s TUMOR -o test.vep.gt.expr.vcf
+
+#Now verify the GX field was added correctly:
+module load BCFtools/1.18-GCC-12.3.0  #load BCFtools as a module
+bcftools view -h test.vep.gt.expr.vcf | grep "GX"
+##FORMAT=<ID=GX,Number=.,Type=String,Description="Gene Expression">
+
+#And check a few variants have expression values:
+bcftools query -f '[%GX]\n' test.vep.gt.expr.vcf | head -20
+
+pip install tf-keras
+export TF_USE_LEGACY_KERAS=1
+export CUDA_VISIBLE_DEVICES=""
+
 ##-download mhcflurry
 mhcflurry-downloads fetch
 mhcflurry-downloads info
