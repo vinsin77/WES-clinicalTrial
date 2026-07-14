@@ -1,6 +1,6 @@
 #this step is required for pvaqseq (neoantigen calculation); before adding the expression data to VCF
 ##The TPM file uses gene symbols (A1BG, A1BG-AS1, 7SK etc.) as row names, but pvacseq/VEP expects Ensembl gene IDs (ENSG00000...). 
-##But vcf-expression-annotator needs the IDs to match the Gene field in your VEP CSQ annotation.
+##But vcf-expression-annotator needs the IDs to match the Gene field in the VEP CSQ annotation.
 ## We need to convert gene symbols to Ensembl IDs first:
 
 library(biomaRt)
@@ -9,7 +9,7 @@ library(biomaRt)
 data_tpm <- readRDS("RNAtpm.RDS") #expression file
 data1 <- as.data.frame(data_tpm)
 
-# Extract BL-100 only
+# Extract one sample only
 bl100_tpm <- data.frame(
   gene_symbol = rownames(data1),
   TPM = data1[, "BL-100"]
