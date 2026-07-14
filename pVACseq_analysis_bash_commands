@@ -81,6 +81,30 @@ pvacseq run test.vep.gt.vcf TUMOR HLA-A*02:01,HLA-A*03:01,HLA-B*07:02 MHCflurry 
 #No MHC class II prediction algorithms chosen. Skipping MHC class II predictions.
 
 
+######-----------check the output!
+
+#Primary files:
+#TUMOR.MHC_I.all_epitopes.tsv — all predicted epitopes before filtering
+#TUMOR.MHC_I.filtered.tsv — epitopes passing all filters (binding, coverage, expression)
+#TUMOR.MHC_I.all_epitopes.aggregated.tsv — one best epitope per variant, with tier classification
+
+# Total variants in aggregated report
+wc -l TUMOR.MHC_I.all_epitopes.aggregated.tsv
+
+# Count by tier
+awk -F'\t' 'NR>1 {print $NF}' TUMOR.MHC_I.all_epitopes.aggregated.tsv | sort | uniq -c
+
+# Count Pass tier only (high-confidence neoantigens)
+awk -F'\t' 'NR>1 && $NF=="Pass"' TUMOR.MHC_I.all_epitopes.aggregated.tsv | wc -l
+
+##The tiers are:
+#Pass — high confidence neoantigens, clonal, well-expressed, strong binders
+#Relaxed — pass binding but fail some other criteria
+#Anchor — problematic anchor positions
+#Low — low expression or subclonal
+#Poor — poor binding
+
+
 
 
 
