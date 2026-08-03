@@ -19,7 +19,7 @@ Bladder Cancer WES data analysis- Somatic mutations
  - Second, creating collated.BAM files from HLA region-only BAMs
  - Then, creating fastq1 and fastq2 files from collated.BAM files
   
-3- Using HLAHD (HLA typing algorithm, MHC Class I and Class II); https://pubmed.ncbi.nlm.nih.gov/28419628/ 
+3- Using HLAHD (HLA typing algorithm, MHC Class I and Class II); https://pubmed.ncbi.nlm.nih.gov/28419628/ https://w3.genome.med.kyoto-u.ac.jp/HLA-HD/
 -
  -  Request access to HLA-HD (do this on your own laptop, not the server)
    •	Open a browser and go to: https://www.genome.med.kyoto-u.ac.jp/HLA-HD /
