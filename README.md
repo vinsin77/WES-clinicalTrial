@@ -1,8 +1,8 @@
 # WES-clinicalTrial
 Bladder Cancer WES data analysis- Somatic mutations
 
-pVACseq pipeline (Neoantigen Prediction Analysis):
-The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
+# pVACseq pipeline (Neoantigen Prediction Analysis):
+- The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
 
 1-Input file preparation (use: pVACseq_analysis_bash_commands):
 - 
