@@ -4,7 +4,7 @@ Bladder Cancer WES data analysis- Somatic mutations
 pVACseq pipeline (Neoantigen Prediction Analysis):
 The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
 
-1-Input file preparation (pVACseq_analysis_bash_commands):
+1-Input file preparation (use: pVACseq_analysis_bash_commands):
 - 
 - Using WES VCF files
 - Annotating VCFs with VEP
@@ -19,7 +19,7 @@ The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
  - Second, creating collated.BAM files from HLA region-only BAMs
  - Then, creating fastq1 and fastq2 files from collated.BAM files
   
-3- Using HLAHD (HLA typing algorithm, MHC Class I and Class II)
+3- Using HLAHD (HLA typing algorithm, MHC Class I and Class II); https://pubmed.ncbi.nlm.nih.gov/28419628/ 
 -
  -  Request access to HLA-HD (do this on your own laptop, not the server)
    •	Open a browser and go to: https://www.genome.med.kyoto-u.ac.jp/HLA-HD /
