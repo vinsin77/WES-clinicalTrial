@@ -32,4 +32,8 @@ The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
    •    extract the archive: tar -xzvf hlahd.1.7.1.tar.gz
  - Running HLAHD (use: HLAHD_commands)
  - Running SLURM (use: run_hlahd.sh)
+   •    sbatch run_hlahd.sh
+   •	squeue -u <user>
+   •	sacct -j <job_id> --format=JobID,JobName,State,ExitCode | grep -v COMPLETED
+
 
