@@ -1,0 +1,34 @@
+##Load modules
+module load GCC/13.3.0
+module load Perl/5.38.2-GCCcore-13.3.0
+
+#activate micromamba
+micromamba activate pvactools_env  
+
+#install bowtie2 in this environment
+micromamba install -c bioconda -c conda-forge bowtie2
+
+# Confirm it's on PATH
+which bowtie2-build
+bowtie2-build –version
+
+#Run the installer
+cd hlahd.1.7.1
+bash install.sh
+bash update.dictionary.sh
+
+# Make hlahd.sh executable and add to PATH
+chmod +x bin/hlahd.sh
+export PATH=$PATH:/work_dir/hlahd.1.7.1/bin
+hlahd.sh –version
+
+#run hlahd for one sample (to test if it fails or works)
+#the command for one sample: WB125
+run_hlahd.sh -t 4 -m 100 pvacseq_hla_bams/hla_reads_WB125_1.fastq pvacseq_hla_bams/hla_reads_WB125_2.fastq hlahd.1.7.1/HLA_gene.split.txt hlahd.1.7.1/dictionary WB125 hlahd_output
+
+#Run SLURM JOB (check: run_hlahd.sh script)!!
+
+
+
+
+
