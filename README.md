@@ -46,7 +46,8 @@ Bladder Cancer WES data analysis- Somatic mutations
 
 4- Running pVACseq as an array job (use: pvacseq_array.sh)
 -
-   •    sbatch --array=1-103%10 pvacseq_array.sh
+   •    N is coming from:  wc -l vcf_sample_hla_mapping.tsv (and -1 for the header; For example, if wc -l shows 111 (including header),N is 110)
+   •    sbatch --array=1-N%10 pvacseq_array.sh
    •	squeue -u <user>
 
 
