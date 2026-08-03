@@ -29,7 +29,7 @@ The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
  - Get the file onto the university server
    •	scp C:/Users/xxx/Downloads/hlahd.1.7.1.tar.gz xxxx@so-bctl-gpu01.hpda.ulb.ac.be:/work_dir/pvacseq/
    •	then move to CECI cluster: scp /work_dir/pvacseq/hlahd.1.7.1.tar.gz xxx@lemaitre4:/work_dir/
-   •  extract the archive: tar -xzvf hlahd.1.7.1.tar.gz
-   •  load the modules: module load GCC/13.3.0   module load Perl/5.38.2-GCCcore-13.3.0
--Running HLAHD (HLAHD_commands)
+   •    extract the archive: tar -xzvf hlahd.1.7.1.tar.gz
+ - Running HLAHD (HLAHD_commands)
+ - Running SLURM (run_hlahd.sh)
 
