@@ -10,10 +10,10 @@ The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
 - Annotating VCFs with VEP
 - Adding coverage data to your VCF
 - Adding expression data to your VCF
-    •using TPM.rds file converting from hgnc_symbol to ensembl_gene_id (pvacseq_converting_genes.R, pvacseq_converting_genes_for_all_samples.R)
-    •adding expression column to the VCFs (pVACseq_analysis_bash_commands)
+    •using TPM.rds file converting from hgnc_symbol to ensembl_gene_id (use: pvacseq_converting_genes.R, pvacseq_converting_genes_for_all_samples.R)
+    •adding expression column to the VCFs (use: pVACseq_analysis_bash_commands)
 
-2-Preparing fastq files from germline BAM files (commands_for_bam_to_fastq_files):
+2-Preparing fastq files from germline BAM files (use: commands_for_bam_to_fastq_files):
  -
  - First, creating HLA region-only BAMs from the original BAM files
  - Second, creating collated.BAM files from HLA region-only BAMs
@@ -30,6 +30,6 @@ The documentation is: https://pvactools.readthedocs.io/en/latest/pvacseq.html
    •	scp C:/Users/xxx/Downloads/hlahd.1.7.1.tar.gz xxxx@so-bctl-gpu01.hpda.ulb.ac.be:/work_dir/pvacseq/
    •	then move to CECI cluster: scp /work_dir/pvacseq/hlahd.1.7.1.tar.gz xxx@lemaitre4:/work_dir/
    •    extract the archive: tar -xzvf hlahd.1.7.1.tar.gz
- - Running HLAHD (HLAHD_commands)
- - Running SLURM (run_hlahd.sh)
+ - Running HLAHD (use: HLAHD_commands)
+ - Running SLURM (use: run_hlahd.sh)
 
