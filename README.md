@@ -44,5 +44,10 @@ Bladder Cancer WES data analysis- Somatic mutations
 - Mapping each VCF sample (BL<N>, BL<N>D, S<N>) to its corresponding HLA string (use: map_vcf_to_hla.sh)
    •    ./map_vcf_to_hla.sh
 
+4- Running pVACseq as an array job (use: pvacseq_array.sh)
+-
+   •    sbatch --array=1-103%10 pvacseq_array.sh
+   •	squeue -u <user>
+
 
 
