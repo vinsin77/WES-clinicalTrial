@@ -35,5 +35,14 @@ Bladder Cancer WES data analysis- Somatic mutations
    •    sbatch run_hlahd.sh
    •	squeue -u <user>
    •	sacct -j <job_id> --format=JobID,JobName,State,ExitCode | grep -v COMPLETED
+- Building one parsing script for all samples (per sample, per locus) (use: parse_hlahd_class2.sh)
+   •    chmod +x parse_hlahd_class2.sh
+   •    ./parse_hlahd_class2.sh
+- Building final pVACseq HLA allele string per sample, exact format:Class I: HLA-A*02:01 (with prefix); Class II: DRB1*11:04, DQA1*05:05-DQB1*03:02,       DPA1*01:03-DPB1*04:02 (no prefix, dash-paired for DQ/DP) (use: build_pvacseq_hla.sh)
+   •    chmod +x build_pvacseq_hla.sh
+   •    ./build_pvacseq_hla.sh
+- Mapping each VCF sample (BL<N>, BL<N>D, S<N>) to its corresponding HLA string
+   •    ./map_vcf_to_hla.sh
+
 
 
