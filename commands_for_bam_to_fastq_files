@@ -6,12 +6,14 @@ module load BWA/0.7.17-GCC-10.2.0
 
 export PATH=/home/user/.conda/envs/hlatyping/bin:$PATH
 samtools view -b final.bam chr6:28477797-33448354 > hla_reads.bam
-samtools fastq hla_reads.bam -1 hla_reads_1.fastq -2 hla_reads_2.fastq
-conda install -c conda-forge glpk -y
-glpsol –version
-OptiTypePipeline.py -i hla_reads_1.fastq hla_reads_2.fastq --dna --outdir optitype_output --prefix BL100
+#samtools fastq hla_reads.bam -1 hla_reads_1.fastq -2 hla_reads_2.fastq
+#conda install -c conda-forge glpk -y
+#glpsol –version
+#OptiTypePipeline.py -i hla_reads_1.fastq hla_reads_2.fastq --dna --outdir optitype_output --prefix BL100
 
 
 #all the samples, in a loop:
+#BASE_DIR="/main/AURA/DNAmapped38/wes"; OUT_DIR="/my_dir/pvacseq/hla_reads_bam"; mkdir -p "$OUT_DIR"; for sample_dir in "$BASE_DIR"/WB* "$BASE_DIR"/Plasmanormal* "$BASE_DIR"/Wb*; do [ -d "$sample_dir" ] || continue; sample=$(basename "$sample_dir"); bam="$sample_dir/final.bam"; [ -f "$bam" ] || { echo "Skipping $sample"; continue; }; echo "Processing $sample"; samtools view -@ 8 -b "$bam" chr6:28477797-33448354 > "$OUT_DIR/hla_reads_${sample}.bam"; samtools fastq -@ 8 "$OUT_DIR/hla_reads_${sample}.bam" -1 "$OUT_DIR/hla_reads_${sample}_1.fastq" -2 "$OUT_DIR/hla_reads_${sample}_2.fastq" -0 /dev/null -s /dev/null -n; done
 
-•	BASE_DIR="/main/AURA/DNAmapped38/wes"; OUT_DIR="/my_dir/pvacseq/hla_reads_bam"; mkdir -p "$OUT_DIR"; for sample_dir in "$BASE_DIR"/WB* "$BASE_DIR"/Plasmanormal* "$BASE_DIR"/Wb*; do [ -d "$sample_dir" ] || continue; sample=$(basename "$sample_dir"); bam="$sample_dir/final.bam"; [ -f "$bam" ] || { echo "Skipping $sample"; continue; }; echo "Processing $sample"; samtools view -@ 8 -b "$bam" chr6:28477797-33448354 > "$OUT_DIR/hla_reads_${sample}.bam"; samtools fastq -@ 8 "$OUT_DIR/hla_reads_${sample}.bam" -1 "$OUT_DIR/hla_reads_${sample}_1.fastq" -2 "$OUT_DIR/hla_reads_${sample}_2.fastq" -0 /dev/null -s /dev/null -n; done
+
+for bam in hla_reads_*.bam; do sample=$(basename "$bam" .bam); samtools collate -@ 8 -o "${sample}.collated.bam" "$bam" && samtools fastq -@ 8 "${sample}.collated.bam" -1 "${sample}_1.fastq" -2 "${sample}_2.fastq" -0 /dev/null -s /dev/null -n; done
