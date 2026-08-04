@@ -1,0 +1,26 @@
+# checking the job status:
+squeue -u <user>
+
+#checking which job run succesfully or failed:
+sacct -j <jobid> --format=JobID,State,ExitCode,Elapsed --parsable2 | grep -v COMPLETED JobID|State|ExitCode|Elapsed
+
+#7616558_5|TIMEOUT|0:0|04:00:00
+#7616558_5.batch|CANCELLED|0:15|04:00:01
+...
+#this job cancelled because of time limit 
+
+#first checked the job ids and then get the list of failed sample names (not just task IDs)
+pvacseq_project]$ for id in 5 7 21 27 29 37 44 51 61 71 73 87 90; do sed -n "$((id+1))p" vcf_sample_hla_mapping.tsv; done
+#Patient1   HLA-A*02:01,HLA-A*02:05,HLA-B*44:464,HLA-B*18:177,HLA-C*12:05,HLA-C*05:01,DRB1*04:01,DRB1*07:01,DQA1*02:01-DQB1*03:01,DQA1*02:17-DQB1*02:20,DPA1*01:03-DPB1*04:02,DPA1*02:01-DPB1*17:01
+...
+
+#and remove their output files
+for id in 5 7 21 27 29 37 44 51 61 71 73 87 90; do sample=$(sed -n "$((id+1))p" vcf_sample_hla_mapping.tsv | cut -f1); echo "Removing: $sample"; rm -rf "pvacseq_output/${sample}"; done
+#Removing: Patient1 
+..
+
+#Update --time in the script 
+#SBATCH --time=08:00:00
+
+#Then resubmit:
+sbatch --array=5,7,21,27,29,37,44,51,61,71,73,87,90%5 pvacseq_array.sh
