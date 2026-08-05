@@ -2,8 +2,8 @@
 squeue -u <user>
 
 #checking which job run succesfully or failed:
-sacct -j <jobid> --format=JobID,State,ExitCode,Elapsed --parsable2 | grep -v COMPLETED JobID|State|ExitCode|Elapsed
-
+sacct -j <jobid> --format=JobID,State,ExitCode,Elapsed --parsable2 | grep -v COMPLETED 
+#JobID|State|ExitCode|Elapsed
 #7616558_5|TIMEOUT|0:0|04:00:00
 #7616558_5.batch|CANCELLED|0:15|04:00:01
 ...
