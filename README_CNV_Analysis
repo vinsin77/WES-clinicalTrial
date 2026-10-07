@@ -1,0 +1,12 @@
+#
+#1. ASCAT_to_GISTIC_seg.R script was used to run GISTIC2 with ASCAT results:
+#   ASCAT outputs were used to generate GISTIC2 input, with segment coordinates, marker counts and log2-scaled copy number values from ASCAT
+#   ASCAT outputs: segments.txt and Tumour.LogR.PCFed.txt
+#   This script produces 4 outputs: 
+#   - gistic_segs.txt     : Sample / Chromosome / Start / End / Num_Markers / Seg.CN
+#   - gistic_markers.txt  : Marker_ID / Chromosome / Position
+#   - conversion_log.txt  : per-sample / per-segment QC summary (markers found, segments dropped, etc.)
+#   - sample_ploidy_offsets.txt
+
+#2. To filter GISTIC2 inputs before GISTIC2 analysis for excluding 5 samples and choosing only baseline samples: the GISTIC_INPUT_FILTER.R script was used
+#3. Run GISTIC2: the run_GISTIC2_BL.sh script was used (./run_gistic_BL.sh 2>&1 | tee gistic_BL.log)
